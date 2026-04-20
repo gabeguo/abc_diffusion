@@ -31,7 +31,6 @@ import os
 import wandb
 
 from models import DiT_models, LogvarNet
-from diffusion import create_diffusion
 from diffusers.models import AutoencoderKL
 
 from non_markov_diffusion.loss import dsm_loss, sample_p_base_x_t_cond_x_t_prev_x_t_next
