@@ -58,3 +58,17 @@ Slurm:
 ```
 sbatch _run_inference.sh
 ```
+
+## Citation
+```
+@article{guo2026_abc,
+  title={ABC: Any-Subset Autoregression via Non-Markovian Diffusion Bridges in Continuous Time and Space},
+  author={Guo, Gabe and Sornwanee, Thanawat and Hao, Luton and Litman, Elon and Ermon, Stefano and Blanchet, Jose},
+  journal={arXiv preprint},
+  year={2026}
+}
+```
+
+## Acknowledgements
+
+This repository builds off [DiT](https://github.com/facebookresearch/DiT/tree/main).
