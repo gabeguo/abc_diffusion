@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+
+datasets/
+results/
+*.pt
+*.h5
