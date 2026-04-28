@@ -98,3 +98,26 @@ class CosineDecayingVolatilitySDE(PeriodicVolatilitySDE):
         return super().sigma(t - 1)
     def C(self, start, t_a, t_b):
         return super().C(start=start-1, t_a=t_a-1, t_b=t_b-1)
+
+
+class UniformVolatilitySDE(SDE):
+    def __init__(self, A, K, score_network):
+        super().__init__(A=A, score_network=score_network)
+        self.K = K
+        return
+
+    def sigma(self, t):
+        return torch.full_like(t, self.K)
+
+    def phi(self, start, end):
+        return torch.exp(-self.A * (end - start))
+
+    def C(self, start, t_a, t_b):
+        upper = torch.minimum(t_a, t_b)
+        if self.A == 0:
+            return (self.K ** 2) * (upper - start)
+
+        numerator = (self.K ** 2) * torch.exp(-self.A * (t_a + t_b))
+        denominator = 2 * self.A
+        window = torch.exp(2 * self.A * upper) - torch.exp(2 * self.A * start)
+        return numerator * window / denominator

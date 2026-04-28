@@ -11,11 +11,16 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import math
 from timm.models.vision_transformer import PatchEmbed, Attention, Mlp
-from torch.nn.attention.varlen import varlen_attn
 from functools import partial
+
+try:
+    from torch.nn.attention.varlen import varlen_attn
+except ImportError:
+    varlen_attn = None
 
 
 def modulate(x, shift, scale):
@@ -325,18 +330,37 @@ class CrossAttention(nn.Module):
         assert max_kv >= max_q
 
         # TODO: investigate hardcoded scale if this is still unstable
-        out = varlen_attn(
-            query=self.q_norm(query),
-            key=self.k_norm(key),
-            value=value,
-            cu_seq_q=cu_seq_q,
-            cu_seq_k=cu_seq_kv,
-            max_q=max_q,
-            max_k=max_kv,
-            # scale=self.scale,
-        )
-        assert out.shape == (N * T, self.num_heads, D // self.num_heads)
-        out = out.reshape(N, T, D)
+        if varlen_attn is not None:
+            out = varlen_attn(
+                query=self.q_norm(query),
+                key=self.k_norm(key),
+                value=value,
+                cu_seq_q=cu_seq_q,
+                cu_seq_k=cu_seq_kv,
+                max_q=max_q,
+                max_k=max_kv,
+                # scale=self.scale,
+            )
+            assert out.shape == (N * T, self.num_heads, D // self.num_heads)
+            out = out.reshape(N, T, D)
+        else:
+            head_dim = D // self.num_heads
+            packed_q = q.reshape(N, T, self.num_heads, head_dim)
+            packed_k = k.reshape(B, T, self.num_heads, head_dim)
+            packed_v = v.reshape(B, T, self.num_heads, head_dim)
+            frame_counts = attn_mask.sum(dim=-1).tolist()
+            out_chunks = []
+            start = 0
+            for batch_idx, frame_count in enumerate(frame_counts):
+                end = start + frame_count
+                q_i = self.q_norm(packed_q[batch_idx]).permute(1, 0, 2).unsqueeze(0)
+                k_i = self.k_norm(packed_k[start:end].reshape(frame_count * T, self.num_heads, head_dim)).permute(1, 0, 2).unsqueeze(0)
+                v_i = packed_v[start:end].reshape(frame_count * T, self.num_heads, head_dim).permute(1, 0, 2).unsqueeze(0)
+                out_i = F.scaled_dot_product_attention(q_i, k_i, v_i, dropout_p=0.0)
+                out_chunks.append(out_i.squeeze(0).permute(1, 0, 2).reshape(T, D))
+                start = end
+            assert start == B
+            out = torch.stack(out_chunks, dim=0)
 
         return self.proj(out)
 
@@ -466,7 +490,7 @@ class DiTWithCrossAttention(DiT):
         assert cond_images.shape == (B, L, C, H, W)
         assert t.shape == (B,)
         assert cond_times.shape == cond_masks.shape == (B, L)
-        assert C in (3, 4)
+        assert C > 0
         assert H == W
         
         is_valid_pinning_time = (cond_times > t.unsqueeze(1)) & cond_masks
@@ -521,7 +545,7 @@ class DiTWithCrossAttention(DiT):
 
         N, L, C, H, W = cond_images.shape
         assert x.shape == (N, C, H, W)
-        assert C in (3, 4)
+        assert C > 0
         assert H == W
         assert cond_times.shape == (N, L)
         assert cond_masks.shape == (N, L)
