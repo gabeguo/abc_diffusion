@@ -1,6 +1,6 @@
 # ABC: Any-Subset Autoregression via Non-Markov Diffusion Bridges in Continuous Space and Time
 
-[Gabe Guo](https://gabeguo.github.io), [Thanawat Sornwanee](https://tsornwanee.github.io/), [Lutong Hao](https://www.linkedin.com/in/lutong-hao/), [Elon Litman](https://elonlit.com/), [Stefano Ermon](https://cs.stanford.edu/~ermon/), [Jose Blanchet](https://joseblanchet.com/).
+[Gabe Guo](https://gabeguo.github.io), [Thanawat Sornwanee](https://tsornwanee.github.io/), [Lutong Hao](https://lutong-hao.github.io/), [Elon Litman](https://elonlit.com/), [Stefano Ermon](https://cs.stanford.edu/~ermon/), [Jose Blanchet](https://joseblanchet.com/).
 
 _Generative modeling continuous-time, continuous-space stochastic processes (e.g., videos, weather forecasts) conditioned on partial observations (e.g., first and last frames) is a fundamental challenge.
 Existing approaches, (e.g., diffusion models), suffer from key limitations: (1) noise-to-data evolution fails to capture structural similarity between states close in physical time and has unstable integration in low-step regimes; (2) random noise injected is insensitive to the physical process's time elapsed, resulting in incorrect dynamics; (3) they overlook conditioning on arbitrary subsets of states (e.g., irregularly sampled timesteps, future observations).
@@ -65,11 +65,14 @@ sbatch _run_inference.sh
 
 ## Citation
 ```
-@article{guo2026_abc,
-  title={ABC: Any-Subset Autoregression via Non-Markovian Diffusion Bridges in Continuous Time and Space},
-  author={Guo, Gabe and Sornwanee, Thanawat and Hao, Lutong and Litman, Elon and Ermon, Stefano and Blanchet, Jose},
-  journal={arXiv preprint},
-  year={2026}
+@article{guo2026abc,
+      title={ABC: Any-Subset Autoregression via Non-Markovian Diffusion Bridges in Continuous Time and Space}, 
+      author={Gabe Guo and Thanawat Sornwanee and Lutong Hao and Elon Litman and Stefano Ermon and Jose Blanchet},
+      year={2026},
+      eprint={2604.27443},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2604.27443}, 
 }
 ```
 
